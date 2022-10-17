@@ -1,4 +1,6 @@
 import random
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -16,6 +18,8 @@ def generate_shape(bin_num, num_sample=10000):
         config.append((mu, sigma))
         s = np.random.normal(mu, sigma, round(num_sample / bin_num)).tolist()
         result.extend(s)
+    plt.figure()
+    sns.kdeplot(result)
     return config
 
 
@@ -44,7 +48,13 @@ def generate_false_dist(config, num_sample=10000):
 
 
 def generate_data(num_true, num_false, bin_num, num_sample=10000):
-    config = generate_shape(bin_num, num_sample)
+    yes = False
+    while not yes:
+        config = generate_shape(bin_num, num_sample)
+        i = input('Choose this config (y/n): ')
+        if i.lower() == 'y':
+            yes = True
+
     data = []
     for _ in range(num_true):
         true = generate_true_dist(config, num_sample) + [1]
@@ -53,5 +63,5 @@ def generate_data(num_true, num_false, bin_num, num_sample=10000):
         false = generate_false_dist(config, num_sample) + [0]
         data.append(false)
     data = pd.DataFrame(data)
-    data.columns = data.columns[:-1] + ['Label']
+    data.columns = [*data.columns[:-1], 'Label']
     return data
