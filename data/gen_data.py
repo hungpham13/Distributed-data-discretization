@@ -24,13 +24,14 @@ def generate_shape(bin_num, num_sample=10000):
     return config
 
 
-def generate_true_dist(config, num_sample=10000, line_style='-'):
+def generate_true_dist(config, num_sample=10000, line_style='-', visualize=True):
     result = []
     partial_num = round(num_sample / len(config))
     for (mu, sigma) in config:
         s = np.random.normal(mu, sigma, partial_num).tolist()
         result.extend(s)
-    sns.kdeplot(result, linestyle=line_style)
+    if visualize:
+        sns.kdeplot(result, linestyle=line_style)
     return result
 
 
@@ -44,11 +45,11 @@ def modify_config(config):
     return result
 
 
-def generate_false_dist(config, num_sample=10000):
-    return generate_true_dist(modify_config(config), num_sample, line_style='--')
+def generate_false_dist(config, num_sample=10000, visualize=True):
+    return generate_true_dist(modify_config(config), num_sample, line_style='--', visualize=visualize)
 
 
-def generate_data(num_true, num_false, bin_num, num_sample=10000):
+def generate_data(num_true, num_false, bin_num, num_sample=10000, visualize=True):
     yes = False
     while not yes:
         config = generate_shape(bin_num, num_sample)
@@ -58,10 +59,10 @@ def generate_data(num_true, num_false, bin_num, num_sample=10000):
 
     data = []
     for _ in range(num_true):
-        true = generate_true_dist(config, num_sample) + [1]
+        true = generate_true_dist(config, num_sample, visualize=visualize) + [1]
         data.append(true)
     for _ in range(num_false):
-        false = generate_false_dist(config, num_sample) + [0]
+        false = generate_false_dist(config, num_sample, visualize=visualize) + [0]
         data.append(false)
     data = pd.DataFrame(data)
     data.columns = [*data.columns[:-1], 'Label']
