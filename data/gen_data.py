@@ -20,6 +20,7 @@ def generate_shape(bin_num, num_sample=10000):
         result.extend(s)
     plt.figure()
     sns.kdeplot(result)
+    plt.show()
     return config
 
 
