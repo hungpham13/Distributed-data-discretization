@@ -77,6 +77,7 @@ def generate_data(num_train, num_test, true_ratio, bin_num, num_sample=10000,
                 yes = True
     else:
         config = generate_shape(bin_num, num_sample)
+    print('Config:', config)
 
     def generate(num):
         data = []
