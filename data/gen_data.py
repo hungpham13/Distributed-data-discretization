@@ -24,7 +24,8 @@ def generate_shape(bin_num, num_sample=10000):
     return config
 
 
-def generate_true_dist(config, num_sample=10000, line_style='-', visualize=True):
+def generate_true_dist(config, num_sample=10000, line_style='-',
+                       visualize=True):
     result = []
     partial_num = round(num_sample / len(config))
     for (mu, sigma) in config:
@@ -39,17 +40,21 @@ def modify_config(config):
     i = np.random.randint(len(config))
     result = config
     for i in random_combination(range(len(config)), r=round(len(config) * 0.5)):
-        mu_shift = random.uniform(-0.4, -0.2)
-        sigma_shift = random.uniform(0.2, 0.4)
-        result = result[:i] + [(result[i][0] + mu_shift, result[i][1] + sigma_shift)] + result[i + 1:]
+        mu_shift = random.uniform(-0.2, -0.1)
+        sigma_shift = random.uniform(0.1, 0.2)
+        result = result[:i] + [
+            (result[i][0] + mu_shift, result[i][1] + sigma_shift)] + result[
+                                                                     i + 1:]
     return result
 
 
 def generate_false_dist(config, num_sample=10000, visualize=True):
-    return generate_true_dist(modify_config(config), num_sample, line_style='--', visualize=visualize)
+    return generate_true_dist(modify_config(config), num_sample,
+                              line_style='--', visualize=visualize)
 
 
-def generate_data(num_true, num_false, bin_num, num_sample=10000, visualize=True):
+def generate_data(num_train, num_test, true_ratio, bin_num, num_sample=10000,
+                  visualize=True):
     yes = False
     while not yes:
         config = generate_shape(bin_num, num_sample)
@@ -57,14 +62,20 @@ def generate_data(num_true, num_false, bin_num, num_sample=10000, visualize=True
         if i.lower() == 'y':
             yes = True
 
-    data = []
-    for _ in range(num_true):
-        true = generate_true_dist(config, num_sample, visualize=visualize) + [0]
-        data.append(true)
-    for _ in range(num_false):
-        false = generate_false_dist(config, num_sample, visualize=visualize) + [1]
-        data.append(false)
-    random.shuffle(data)
-    data = pd.DataFrame(data)
-    data.columns = [*data.columns[:-1], 'Label']
-    return data
+    def generate(num):
+        data = []
+        true_num = round(num * true_ratio)
+        for _ in range(true_num):
+            true = generate_true_dist(config, num_sample,
+                                      visualize=visualize) + [0]
+            data.append(true)
+        for _ in range(num-true_num):
+            false = generate_false_dist(config, num_sample,
+                                        visualize=visualize) + [1]
+            data.append(false)
+        random.shuffle(data)
+        data = pd.DataFrame(data)
+        data.columns = [*data.columns[:-1], 'Label']
+        return data
+
+    return generate(num_train), generate(num_test)
