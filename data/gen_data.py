@@ -24,15 +24,12 @@ def generate_shape(bin_num, num_sample=10000):
     return config
 
 
-def generate_true_dist(config, num_sample=10000, line_style='-',
-                       visualize=True):
+def generate_true_dist(config, num_sample=10000):
     result = []
     partial_num = round(num_sample / len(config))
     for (mu, sigma) in config:
         s = np.random.normal(mu, sigma, partial_num).tolist()
         result.extend(s)
-    if visualize:
-        sns.kdeplot(result, linestyle=line_style)
     return result
 
 
@@ -48,34 +45,55 @@ def modify_config(config):
     return result
 
 
-def generate_false_dist(config, num_sample=10000, visualize=True):
-    return generate_true_dist(modify_config(config), num_sample,
-                              line_style='--', visualize=visualize)
+def visualize_data(data, title=''):
+    df_false = pd.concat(
+        [data[data.Label == 1].iloc[:50], data[data.Label == 0].iloc[:1]])
+    df_true = pd.concat(
+        [data[data.Label == 1].iloc[:1], data[data.Label == 0].iloc[:50]])
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 5))
+    for i, row in df_false.iterrows():
+        sns.kdeplot(row, linestyle='--' if row.Label == 1 else '-', ax=ax1)
+    for i, row in df_true.iterrows():
+        sns.kdeplot(row, linestyle='--' if row.Label == 1 else '-', ax=ax2)
+
+    ax1.set_title('50 false - 1 true')
+    ax2.set_title('1 false - 50 true')
+    fig.suptitle(f'{title} - Data length: {len(data)}')
+
+
+def generate_false_dist(config, num_sample=10000):
+    return generate_true_dist(modify_config(config), num_sample)
 
 
 def generate_data(num_train, num_test, true_ratio, bin_num, num_sample=10000,
-                  visualize=True):
-    yes = False
-    while not yes:
+                  visualize=True, choose_config=True):
+    if choose_config:
+        yes = False
+        while not yes:
+            config = generate_shape(bin_num, num_sample)
+            i = input('Choose this config (y/n): ')
+            if i.lower() == 'y':
+                yes = True
+    else:
         config = generate_shape(bin_num, num_sample)
-        i = input('Choose this config (y/n): ')
-        if i.lower() == 'y':
-            yes = True
 
     def generate(num):
         data = []
         true_num = round(num * true_ratio)
         for _ in range(true_num):
-            true = generate_true_dist(config, num_sample,
-                                      visualize=visualize) + [0]
+            true = generate_true_dist(config, num_sample) + [0]
             data.append(true)
-        for _ in range(num-true_num):
-            false = generate_false_dist(config, num_sample,
-                                        visualize=visualize) + [1]
+        for _ in range(num - true_num):
+            false = generate_false_dist(config, num_sample) + [1]
             data.append(false)
         random.shuffle(data)
         data = pd.DataFrame(data)
         data.columns = [*data.columns[:-1], 'Label']
         return data
 
-    return generate(num_train), generate(num_test)
+    train, test = generate(num_train), generate(num_test)
+    if visualize:
+        visualize_data(train, title='Train set')
+        visualize_data(test, title='Test set')
+    return train, test
