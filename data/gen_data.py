@@ -39,8 +39,8 @@ def modify_config(config):
     i = np.random.randint(len(config))
     result = config
     for i in random_combination(range(len(config)), r=round(len(config) * 0.5)):
-        mu_shift = random.uniform(-0.2, -0.1)
-        sigma_shift = random.uniform(0.1, 0.2)
+        mu_shift = random.uniform(-0.4, -0.2)
+        sigma_shift = random.uniform(0.2, 0.4)
         result = result[:i] + [(result[i][0] + mu_shift, result[i][1] + sigma_shift)] + result[i + 1:]
     return result
 
@@ -59,11 +59,12 @@ def generate_data(num_true, num_false, bin_num, num_sample=10000, visualize=True
 
     data = []
     for _ in range(num_true):
-        true = generate_true_dist(config, num_sample, visualize=visualize) + [1]
+        true = generate_true_dist(config, num_sample, visualize=visualize) + [0]
         data.append(true)
     for _ in range(num_false):
-        false = generate_false_dist(config, num_sample, visualize=visualize) + [0]
+        false = generate_false_dist(config, num_sample, visualize=visualize) + [1]
         data.append(false)
+    random.shuffle(data)
     data = pd.DataFrame(data)
     data.columns = [*data.columns[:-1], 'Label']
     return data
