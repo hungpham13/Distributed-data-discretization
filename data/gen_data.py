@@ -62,8 +62,8 @@ def visualize_data(data, title=''):
     fig.suptitle(f'{title} - Data length: {len(data)}')
 
 
-def generate_false_dist(config, num_sample=10000):
-    return generate_true_dist(modify_config(config), num_sample)
+def generate_false_dist(bin_num, num_sample=10000):
+    return generate_true_dist(generate_shape(bin_num), num_sample)
 
 
 def generate_data(num_train, num_test, true_ratio, bin_num, num_sample=10000,
@@ -86,7 +86,7 @@ def generate_data(num_train, num_test, true_ratio, bin_num, num_sample=10000,
             true = generate_true_dist(config, num_sample) + [0]
             data.append(true)
         for _ in range(num - true_num):
-            false = generate_false_dist(config, num_sample) + [1]
+            false = generate_false_dist(bin_num, num_sample) + [1]
             data.append(false)
         random.shuffle(data)
         data = pd.DataFrame(data)
