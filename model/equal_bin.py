@@ -30,7 +30,7 @@ def run(num_tries=1, num_train=500, num_test=200):
                                     true_ratio=0.9,
                                     visualize=True,
                                     num_sample=10000,
-                                    bin_num=5,
+                                    bin_num=1,
                                     choose_config=False
                                     )
         data_distribution = train.drop(columns=['Label'])
