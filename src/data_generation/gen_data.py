@@ -36,16 +36,14 @@ def gen_nextday(prev, true):
     return result
 
 
-def generate_data():
-    num_days = 700
-    num_sample = 1000 #10000
+def generate_data(num_days=1000, num_samples=10000):
 
     bin_num = 5
     value_range = [300, 850]
     mu_range = [450, 700]
     sigma_range = [25, ]
 
-    data = pd.DataFrame(columns=list(range(num_sample)) + ['Labels'])
+    data = pd.DataFrame(columns=list(range(num_samples)) + ['Labels'])
 
     # generate first day
     first_day = []
@@ -53,7 +51,7 @@ def generate_data():
         mu = random.uniform(mu_range[0], mu_range[1])
         max_sigma = max(min(mu-value_range[0], value_range[1]-mu)/6, sigma_range[0])
         sigma = random.uniform(sigma_range[0], max_sigma)
-        s = np.random.normal(mu, sigma, round(num_sample / bin_num)).tolist()
+        s = np.random.normal(mu, sigma, round(num_samples / bin_num)).tolist()
         first_day.extend([round(i) for i in s])
 
     data.loc[0] = first_day + [1]
@@ -74,6 +72,6 @@ def generate_data():
     for i,row in data.loc[0:5].iterrows():
         sns.kdeplot(row.drop('Labels'), color= 'red' if row['Labels'] == 0 else 'blue', multiple='stack')
     plt.show()
-    print(data.loc[0:5])
+    print(data.shape)
 
-    return 
+    return data
