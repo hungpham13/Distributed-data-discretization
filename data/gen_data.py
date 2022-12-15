@@ -53,12 +53,12 @@ def generate_data(num_days, num_sample, dist):
     '''
         num_days: number,
         num_sample: number,
-        dist: 'normal' or 'logistic' or 'uniform',
+        dist: 'normal' or 'logistic' or 'uniform' or 'mix',
     '''
     # num_days = 700
     # num_sample = 10000
 
-    bin_num = 5
+    bin_num = 1
     value_range = [300, 850]
     mu_range = [450, 700]
     sigma_range = [25, ]
