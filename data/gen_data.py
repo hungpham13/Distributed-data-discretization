@@ -30,9 +30,10 @@ def gen_nextday(prev, true, dist):
         min(mu-value_range[0], value_range[1]-mu)/6, sigma_range[0])
     sigma = random.uniform(sigma_range[0], max_sigma)
     if (dist == 'uniform'):
-        s = np.random.uniform(mu-5*sigma, mu+5*sigma, len(prev)).tolist()
+        s = np.random.uniform(mu-3*np.sqrt(12)*sigma/2,
+                              mu+3*np.sqrt(12)*sigma/2, len(prev)).tolist()
     elif (dist == 'logistic'):
-        s = np.random.logistic(mu, sigma, len(prev)).tolist()
+        s = np.random.logistic(mu, sigma*np.sqrt(3)/np.pi, len(prev)).tolist()
     else:
         s = np.random.normal(mu, sigma, len(prev)).tolist()
     s = [round(i) for i in s]
@@ -66,10 +67,10 @@ def generate_data(num_days, num_sample, dist):
             min(mu-value_range[0], value_range[1]-mu)/6, sigma_range[0])
         sigma = random.uniform(sigma_range[0], max_sigma)
         if (dist == 'uniform'):
-            s = np.random.uniform(mu-5*sigma, mu+5*sigma,
+            s = np.random.uniform(mu-3*np.sqrt(12)/2*sigma, mu+3*np.sqrt(12)*sigma/2,
                                   round(num_sample / bin_num)).tolist()
         elif (dist == 'logistic'):
-            s = np.random.logistic(mu, sigma, round(
+            s = np.random.logistic(mu, sigma*np.sqrt(3)/np.pi, round(
                 num_sample / bin_num)).tolist()
         else:
             s = np.random.normal(mu, sigma, round(
