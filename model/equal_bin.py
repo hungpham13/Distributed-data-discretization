@@ -12,8 +12,8 @@ def predict(test, breakpoints):
     for i in range(len(test) - 1):
         psi = calculate_psi(expected=test.loc[i], actual=test.loc[i + 1],
                             breakpoints=breakpoints)
-        label.append(test['Label'].loc[i] | test['Label'].loc[i + 1])
-        if psi > 0.1:
+        label.append(test['Labels'].loc[i] | test['Labels'].loc[i + 1])
+        if psi > 0.2:
             prediction.append(1)
         else:
             prediction.append(0)
