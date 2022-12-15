@@ -17,10 +17,10 @@ def gen_nextday(prev, true, dist):
     mu_range = [525, 625]
     if true:
         r = 0.05
-        sigma_range = [50,]
+        sigma_range = [90,]
     else:
         r = 0.3
-        sigma_range = [25, ]
+        sigma_range = [45, ]
     # remove random r% of element in prev
     result = random.sample(prev, round(len(prev) * (1 - r)))
     # add r% of a new random normal distribution to result
@@ -61,7 +61,7 @@ def generate_data(num_days, num_sample, dist):
     bin_num = 1
     value_range = [300, 850]
     mu_range = [450, 700]
-    sigma_range = [25, ]
+    sigma_range = [45, ]
 
     data = pd.DataFrame(columns=list(range(num_sample)) + ['Labels'])
 
