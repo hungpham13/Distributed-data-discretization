@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from iteration_utilities import random_combination
+from tqdm import tqdm
+
 
 
 def gen_nextday(prev, true, dist):
@@ -16,10 +18,10 @@ def gen_nextday(prev, true, dist):
     value_range = [300, 850]
     mu_range = [525, 625]
     if true:
-        r = 0.05
+        r = 0.1
         sigma_range = [90,]
     else:
-        r = 0.3
+        r = 0.5
         sigma_range = [45, ]
     # remove random r% of element in prev
     result = random.sample(prev, round(len(prev) * (1 - r)))
@@ -27,7 +29,8 @@ def gen_nextday(prev, true, dist):
     mu = random.uniform(mu_range[0], mu_range[1])
 
     max_sigma = max(
-        min(mu-value_range[0], value_range[1]-mu)/6, sigma_range[0])
+        min(mu-value_range[0], value_range[1]-mu)/6, sigma_range[0]
+    )
     sigma = random.uniform(sigma_range[0], max_sigma)
 
     if dist == 'mix':
@@ -63,7 +66,8 @@ def generate_data(num_days, num_sample, dist):
     mu_range = [450, 700]
     sigma_range = [45, ]
 
-    data = pd.DataFrame(columns=list(range(num_sample)) + ['Labels'])
+    # data = pd.DataFrame(columns=list(range(num_sample)) + ['Labels'])
+    data = np.array([list(range(num_sample)) + [-1]])
 
     # generate first day
     first_day = []
@@ -87,25 +91,27 @@ def generate_data(num_days, num_sample, dist):
                 num_sample / bin_num)).tolist()
         first_day.extend([round(i) for i in s])
 
-    data.loc[0] = first_day + [0]
+    # data.loc[0] = first_day + [0]
+    data = np.append(data, [first_day + [0]], axis=0)
 
     # 0 is true, 1 is false
 
     prev = first_day
-    for day in range(1, num_days):
+    for day in tqdm(range(1, num_days)):
         label = np.random.choice([0, 1], p=[0.7, 0.3])
         if (label == 0):
             next = gen_nextday(prev, True, dist)
         else:
             next = gen_nextday(prev, False, dist)
         prev = next
-        data.loc[day] = next + [label]
+        # data.loc[day] = next + [label]
+        data = np.append(data, [next + [label]], axis=0)
 
     plt.figure()
-    for i, row in data.loc[0:5].iterrows():
-        sns.kdeplot(row.drop(
-            'Labels'), color='blue' if row['Labels'] == 0 else 'red', multiple='stack')
+    for row in data[1:6, :]:
+        sns.kdeplot(row[:-1], color='blue' if row[-1]
+                    == 0 else 'red', multiple='stack')
     plt.show()
-    print(data.loc[0:5])
+    print(data[:5, :])
 
     return data
