@@ -100,6 +100,7 @@ def generate_data(num_days, num_samples, dist):
                 next = gen_nextday(prev, False, dist)
                 psi = calculate_psi(expected=np.array(prev), actual=np.array(next),
                                     breakpoints=breakpoints)
+                gc.collect()
 
         prev = next
         data = np.append(data, [next + [label]], axis=0)
