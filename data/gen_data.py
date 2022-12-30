@@ -59,7 +59,7 @@ def gen_nextday(prev, true, dist):
     return result
 
 
-def generate_data(num_days, num_sample, dist):
+def generate_data(num_days, num_samples, dist):
     '''
         num_days: number,
         num_sample: number,
@@ -73,10 +73,12 @@ def generate_data(num_days, num_sample, dist):
     mu_range = [450, 700]
     sigma_range = [45, ]
 
+    print(
+        f'Generating {dist} distribution, {num_days} days, {num_samples} samples...')
     # generate first day
     first_day = []
     for _ in range(bin_num):
-        s = generate_day(num_sample, dist, mu_range, sigma_range, value_range)
+        s = generate_day(num_samples, dist, mu_range, sigma_range, value_range)
         first_day.extend(s)
 
     # data.loc[0] = first_day + [0]
