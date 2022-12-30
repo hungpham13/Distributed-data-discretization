@@ -60,7 +60,7 @@ def gen_nextday(prev, true, dist):
     return result
 
 
-def generate_data(num_days, num_samples, dist):
+def generate_data(num_days, num_samples, dist, visualize=False):
     '''
         num_days: number,
         num_sample: number,
@@ -106,11 +106,12 @@ def generate_data(num_days, num_samples, dist):
         data = np.append(data, [next + [label]], axis=0)
         gc.collect()
 
-    plt.figure()
-    for row in data[0:6, :]:
-        sns.kdeplot(row[:-1], color='blue' if row[-1]
-                    == 0 else 'red', multiple='stack')
-    plt.show()
-    print(data[:5, :])
+    if visualize:
+        plt.figure()
+        for row in data[0:6, :]:
+            sns.kdeplot(row[:-1], color='blue' if row[-1]
+                        == 0 else 'red', multiple='stack')
+        plt.show()
+        print(data[:5, :])
 
     return data
