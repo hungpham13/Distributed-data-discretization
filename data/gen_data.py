@@ -5,6 +5,7 @@ import numpy as np
 import seaborn as sns
 from tqdm import tqdm
 from model.psi import get_breakpoint, calculate_psi
+import gc
 
 
 def generate_day(length, dist, mu_range, sigma_range, value_range):
@@ -81,7 +82,6 @@ def generate_data(num_days, num_samples, dist):
         s = generate_day(num_samples, dist, mu_range, sigma_range, value_range)
         first_day.extend(s)
 
-    # data.loc[0] = first_day + [0]
     data = np.array([first_day + [0]])
 
     # 0 is true, 1 is false
@@ -102,8 +102,8 @@ def generate_data(num_days, num_samples, dist):
                                     breakpoints=breakpoints)
 
         prev = next
-        # data.loc[day] = next + [label]
         data = np.append(data, [next + [label]], axis=0)
+        gc.collect()
 
     plt.figure()
     for row in data[0:6, :]:
