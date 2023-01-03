@@ -5,6 +5,7 @@ import numpy as np
 import seaborn as sns
 from tqdm import tqdm
 from model.psi import get_breakpoint, calculate_psi
+from scipy.ndimage.filters import gaussian_filter1d
 import gc
 
 
@@ -60,11 +61,16 @@ def gen_nextday(prev, true, dist):
     return result
 
 
-def generate(num_days, num_samples, dist):
+def generate(num_days, num_samples, dist, mode):
     bin_num = 1
     value_range = [300, 850]
     mu_range = [450, 700]
     sigma_range = [45, ]
+
+    def hist(arr):
+        h, _ = np.histogram(arr, bins=np.arange(
+            value_range[0], value_range[1] + 2, 1))
+        return h.tolist()
 
     print(
         f'Generating {dist} distribution, {num_days} days, {num_samples} samples...')
@@ -74,7 +80,10 @@ def generate(num_days, num_samples, dist):
         s = generate_day(num_samples, dist, mu_range, sigma_range, value_range)
         first_day.extend(s)
 
-    data = np.array([first_day + [0]])
+    if (mode == 'historgram'):
+        data = np.array([hist(first_day) + [0]])
+    else:
+        data = np.array([first_day + [0]])
 
     # 0 is true, 1 is false
 
@@ -99,12 +108,15 @@ def generate(num_days, num_samples, dist):
                     raise Exception('Cannot generate data')
 
         prev = next
-        data = np.append(data, [next + [label]], axis=0)
+        if (mode == 'historgram'):
+            data = np.append(data, [hist(next) + [label]], axis=0)
+        else:
+            data = np.append(data, [next + [label]], axis=0)
         gc.collect()
     return data
 
 
-def generate_data(num_days, num_samples, dist, visualize=False):
+def generate_data(num_days, num_samples, dist, visualize=False, mode='historgram'):
     '''
         num_days: number,
         num_sample: number,
@@ -114,19 +126,24 @@ def generate_data(num_days, num_samples, dist, visualize=False):
     # num_sample = 10000
     done = False
     data = np.array([])
-    while not done:
-        try:
-            data = generate(num_days, num_samples, dist)
-            done = True
-        except:
-            print('Error, retrying...')
-            pass
+    # while not done:
+    #     try:
+    data = generate(num_days, num_samples, dist, mode)
+    #     done = True
+    # except:
+    #     print('Error, retrying...')
+    #     pass
 
     if visualize:
         plt.figure()
         for row in data[0:6, :]:
-            sns.kdeplot(row[:-1], color='blue' if row[-1]
-                        == 0 else 'red', multiple='stack')
+            if (mode == 'historgram'):
+                y = gaussian_filter1d(row[:-1], sigma=2)
+                sns.lineplot(x=range(300, 851), y=y, color='blue' if row[-1]
+                             == 0 else 'red', linewidth=2)
+            else:
+                sns.kdeplot(row[:-1], color='blue' if row[-1]
+                            == 0 else 'red', multiple='stack')
         plt.show()
         print(data[:5, :])
 
