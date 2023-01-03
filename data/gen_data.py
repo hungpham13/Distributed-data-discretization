@@ -60,15 +60,7 @@ def gen_nextday(prev, true, dist):
     return result
 
 
-def generate_data(num_days, num_samples, dist, visualize=False):
-    '''
-        num_days: number,
-        num_sample: number,
-        dist: 'normal' or 'logistic' or 'uniform' or 'mix',
-    '''
-    # num_days = 700
-    # num_sample = 10000
-
+def generate(num_days, num_samples, dist):
     bin_num = 1
     value_range = [300, 850]
     mu_range = [450, 700]
@@ -96,15 +88,39 @@ def generate_data(num_days, num_samples, dist, visualize=False):
             next = gen_nextday(prev, False, dist)
             psi = calculate_psi(expected=np.array(prev), actual=np.array(next),
                                 breakpoints=breakpoints)
+            count = 0
             while (psi < 0.1):
                 next = gen_nextday(prev, False, dist)
                 psi = calculate_psi(expected=np.array(prev), actual=np.array(next),
                                     breakpoints=breakpoints)
                 gc.collect()
+                count += 1
+                if (count > 1000):
+                    raise Exception('Cannot generate data')
 
         prev = next
         data = np.append(data, [next + [label]], axis=0)
         gc.collect()
+    return data
+
+
+def generate_data(num_days, num_samples, dist, visualize=False):
+    '''
+        num_days: number,
+        num_sample: number,
+        dist: 'normal' or 'logistic' or 'uniform' or 'mix',
+    '''
+    # num_days = 700
+    # num_sample = 10000
+    done = False
+    data = np.array([])
+    while not done:
+        try:
+            data = generate(num_days, num_samples, dist)
+            done = True
+        except:
+            print('Error, retrying...')
+            pass
 
     if visualize:
         plt.figure()
