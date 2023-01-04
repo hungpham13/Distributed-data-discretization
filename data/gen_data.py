@@ -126,13 +126,13 @@ def generate_data(num_days, num_samples, dist, visualize=False, mode='historgram
     # num_sample = 10000
     done = False
     data = np.array([])
-    # while not done:
-    #     try:
-    data = generate(num_days, num_samples, dist, mode)
-    #     done = True
-    # except:
-    #     print('Error, retrying...')
-    #     pass
+    while not done:
+        try:
+            data = generate(num_days, num_samples, dist, mode)
+            done = True
+        except:
+            print('Error, retrying...')
+            pass
 
     if visualize:
         plt.figure()
