@@ -102,7 +102,7 @@ def generate(num_days, num_samples, dist, mode):
                 next = gen_nextday(prev, False, dist)
                 psi = calculate_psi(expected=np.array(prev), actual=np.array(next),
                                     breakpoints=breakpoints)
-                gc.collect()
+                # gc.collect()
                 count += 1
                 if (count > 1000):
                     raise Exception('Cannot generate data')
@@ -112,7 +112,7 @@ def generate(num_days, num_samples, dist, mode):
             data = np.append(data, [hist(next) + [label]], axis=0)
         else:
             data = np.append(data, [next + [label]], axis=0)
-        gc.collect()
+        # gc.collect()
     return data
 
 
