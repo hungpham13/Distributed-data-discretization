@@ -1,8 +1,7 @@
-from src.utils import calculate_psi
-from src.utils import get_breakpoint
+from psi import calculate_psi, get_breakpoint
 from data_generation.gen_data import generate_data
-from sklearn.metrics import confusion_matrix, classification_report
 
+from sklearn.metrics import confusion_matrix, classification_report
 import warnings
 
 

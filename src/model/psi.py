@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def calculate_psi(expected, actual, breakpoints, axis=0):
     '''Calculate the PSI (population stability index) across all variables
 
