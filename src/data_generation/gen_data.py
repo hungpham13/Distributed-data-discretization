@@ -98,7 +98,8 @@ def generate(num_days, num_samples, dist, mode):
             psi = calculate_psi(expected=np.array(prev), actual=np.array(next),
                                 breakpoints=breakpoints)
             count = 0
-            while (psi < 0.1):
+            psi_thres = np.random.normal(0.1, 0.01, 1)[0]
+            while (psi < psi_thres):
                 next = gen_nextday(prev, False, dist)
                 psi = calculate_psi(expected=np.array(prev), actual=np.array(next),
                                     breakpoints=breakpoints)
