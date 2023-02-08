@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from tqdm import tqdm
-from model.psi import get_breakpoint, calculate_psi
+from model.utils import js, kl_div, psi, wd
 from scipy.ndimage.filters import gaussian_filter1d
 import gc
 
@@ -34,7 +34,12 @@ def generate_day(length, dist, mu_range, sigma_range, value_range):
         s = np.random.gamma((mu/sigma)**2, sigma**2/mu, length).tolist()
     else:
         s = np.random.normal(mu, sigma, length).tolist()
-    return [round(i) for i in s]
+    
+    result = np.array([round(i) for i in s])
+    result[result > 850] = 850
+    result[result < 300] = 300
+
+    return result.tolist()
 
 
 def gen_nextday(prev, true, dist):
@@ -44,28 +49,59 @@ def gen_nextday(prev, true, dist):
         - r: ratio of mixing with another
     '''
     value_range = [300, 850]
-    mu_range = [525, 625]
+    mu_range = [600, 700]
+    sigma_range = [150,]
     if true:
         r = 0.1
-        sigma_range = [90,]
     else:
-        r = 0.9
-        sigma_range = [45, ]
+        r = 0.6
     # remove random r% of element in prev
     result = random.sample(prev, round(len(prev) * (1 - r)))
     # add r% of a new random normal distribution to result
     s = generate_day(len(prev), dist, mu_range, sigma_range, value_range)
     result = result + random.sample(s, round(len(prev) * r))
     # shuffle result and return
-    random.shuffle(result)
+    # random.shuffle(result)
     return result
+
+
+def add_drift(reference, drift_size: float, drift_ratio: float, drift_mode: str='fixed'):
+    """Artificially adds a shift to the data.
+    Args:
+    curr: initial data
+    drift_size: percents initial values would be increased by
+    drift_ratio: defines what percent of data would be drifted
+    drift_mode:
+        if drift_mode == 'fixed': 
+        # here we should use mean(reference), but in out experiment mean(reference) = mean(current) at this stage
+        all values moved by fixed delta = (alpha + mean(feature)) * drift_size
+        elif: 
+        drift_mode == 'relative': vlues moved by delta(value) = value * drift_size
+    Returns:
+    curr: drifted data
+    """
+    alpha = 0.001
+    i = int(np.round(len(reference) * drift_ratio))
+    change_sign = np.random.choice([1, 0, -1], p=[0.3, 0.5, 0.2])
+    # change_sign = 1
+    if drift_mode == 'fixed':
+        delta = int((alpha + np.mean(reference)) * drift_size)
+        reference[:i] = reference[:i] + change_sign*delta
+    else:
+        reference = reference.astype(float)
+        reference[:i] = reference[:i]*(1 + change_sign*drift_size)
+        reference = reference.astype(int)
+    reference[reference > 850] = 850
+    reference[reference < 300] = 300
+
+    return reference.tolist()
 
 
 def generate(num_days, num_samples, dist, mode):
     bin_num = 1
     value_range = [300, 850]
-    mu_range = [450, 700]
-    sigma_range = [45, ]
+    mu_range = [600, 700]
+    sigma_range = [150, ]
 
     def hist(arr):
         h, _ = np.histogram(arr, bins=np.arange(
@@ -88,25 +124,85 @@ def generate(num_days, num_samples, dist, mode):
     # 0 is true, 1 is false
 
     prev = first_day
-    breakpoints = get_breakpoint(first_day, buckettype='bins', buckets=10)
     for day in tqdm(range(1, num_days)):
         label = np.random.choice([0, 1], p=[0.7, 0.3])
+
         if (label == 0):
             next = gen_nextday(prev, True, dist)
-        else:
-            next = gen_nextday(prev, False, dist)
-            psi = calculate_psi(expected=np.array(prev), actual=np.array(next),
-                                breakpoints=breakpoints)
+
             count = 0
-            psi_thres = np.random.normal(0.1, 0.01, 1)[0]
-            while (psi < psi_thres):
+            thresholds = np.random.normal(0.1, 0.001, 4)
+            thresholds[thresholds < 0.05] = 0.05
+            thresholds[thresholds > 0.3] = 0.3
+
+            scores = [js(prev, next, threshold=thresholds[0])[0],
+                    kl_div(prev, next, threshold=thresholds[1])[0],
+                    psi(prev, next, threshold=thresholds[2])[0],
+                    wd(prev, next, threshold=thresholds[3])[0]]
+            
+            votes = [js(prev, next, threshold=thresholds[0])[1],
+                    kl_div(prev, next, threshold=thresholds[1])[1],
+                    psi(prev, next, threshold=thresholds[2])[1],
+                    wd(prev, next, threshold=thresholds[3])[1]]
+
+            stop = np.mean(scores) < 0.1 and sum(votes) < 2
+            while not stop:
                 next = gen_nextday(prev, False, dist)
-                psi = calculate_psi(expected=np.array(prev), actual=np.array(next),
-                                    breakpoints=breakpoints)
+
+                scores = [js(prev, next, threshold=thresholds[0])[0],
+                        kl_div(prev, next, threshold=thresholds[1])[0],
+                        psi(prev, next, threshold=thresholds[2])[0],
+                        wd(prev, next, threshold=thresholds[3])[0]]
+
+                votes = [js(prev, next, threshold=thresholds[0])[1],
+                        kl_div(prev, next, threshold=thresholds[1])[1],
+                        psi(prev, next, threshold=thresholds[2])[1],
+                        wd(prev, next, threshold=thresholds[3])[1]]
+                stop = np.mean(scores) <= 0.15 and sum(votes) < 2   
+                
                 gc.collect()
                 count += 1
                 if (count > 1000):
                     raise Exception('Cannot generate data')
+        else:
+            next = gen_nextday(prev, False, dist)
+
+            count = 0
+            thresholds = np.random.normal(0.1, 0.001, 4)
+            thresholds[thresholds < 0.07] = 0.07
+            thresholds[thresholds > 0.3] = 0.3
+
+            scores = [js(prev, next, threshold=thresholds[0])[0],
+                    kl_div(prev, next, threshold=thresholds[1])[0],
+                    psi(prev, next, threshold=thresholds[2])[0],
+                    wd(prev, next, threshold=thresholds[3])[0]]
+
+            votes = [js(prev, next, threshold=thresholds[0])[1],
+                    kl_div(prev, next, threshold=thresholds[1])[1],
+                    psi(prev, next, threshold=thresholds[2])[1],
+                    wd(prev, next, threshold=thresholds[3])[1]]
+
+            stop = 0.1 <= np.mean(scores) <= 0.3 and sum(votes) >= 2
+            while not stop:
+                next = gen_nextday(prev, False, dist)
+
+                scores = [js(prev, next, threshold=thresholds[0])[0],
+                        kl_div(prev, next, threshold=thresholds[1])[0],
+                        psi(prev, next, threshold=thresholds[2])[0],
+                        wd(prev, next, threshold=thresholds[3])[0]]
+
+                votes = [js(prev, next, threshold=thresholds[0])[1],
+                        kl_div(prev, next, threshold=thresholds[1])[1],
+                        psi(prev, next, threshold=thresholds[2])[1],
+                        wd(prev, next, threshold=thresholds[3])[1]]
+                
+                stop = 0.1 <= np.mean(scores) <= 0.3 and sum(votes) >= 2
+                
+                gc.collect()
+                count += 1
+                if (count > 1000):
+                    raise Exception('Cannot generate data')
+        # print("Final:", label, scores, np.mean(scores), votes)
 
         prev = next
         if (mode == 'historgram'):
@@ -123,8 +219,6 @@ def generate_data(num_days, num_samples, dist, visualize=False, mode='historgram
         num_sample: number,
         dist: 'normal' or 'logistic' or 'uniform' or 'mix',
     '''
-    # num_days = 700
-    # num_sample = 10000
     done = False
     data = np.array([])
     while not done:
