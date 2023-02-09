@@ -50,7 +50,7 @@ def gen_nextday(prev, true, dist):
     '''
     value_range = [300, 850]
     mu_range = [600, 700]
-    sigma_range = [150,]
+    sigma_range = [100,]
     if true:
         r = 0.1
     else:
@@ -101,7 +101,7 @@ def generate(num_days, num_samples, dist, mode):
     bin_num = 1
     value_range = [300, 850]
     mu_range = [600, 700]
-    sigma_range = [150, ]
+    sigma_range = [100, ]
 
     def hist(arr):
         h, _ = np.histogram(arr, bins=np.arange(
@@ -116,7 +116,7 @@ def generate(num_days, num_samples, dist, mode):
         s = generate_day(num_samples, dist, mu_range, sigma_range, value_range)
         first_day.extend(s)
 
-    if (mode == 'historgram'):
+    if (mode == 'histogram'):
         data = np.array([hist(first_day) + [0]])
     else:
         data = np.array([first_day + [0]])
@@ -145,7 +145,7 @@ def generate(num_days, num_samples, dist, mode):
                     psi(prev, next, threshold=thresholds[2])[1],
                     wd(prev, next, threshold=thresholds[3])[1]]
 
-            stop = np.mean(scores) < 0.1 and sum(votes) < 2
+            stop = np.mean(scores) < 0.1 and sum(votes) <= 1
             while not stop:
                 next = gen_nextday(prev, False, dist)
 
@@ -202,10 +202,10 @@ def generate(num_days, num_samples, dist, mode):
                 count += 1
                 if (count > 1000):
                     raise Exception('Cannot generate data')
-        # print("Final:", label, scores, np.mean(scores), votes)
+        print("Final:", label, scores, np.mean(scores), votes)
 
         prev = next
-        if (mode == 'historgram'):
+        if (mode == 'histogram'):
             data = np.append(data, [hist(next) + [label]], axis=0)
         else:
             data = np.append(data, [next + [label]], axis=0)
@@ -213,7 +213,7 @@ def generate(num_days, num_samples, dist, mode):
     return data
 
 
-def generate_data(num_days, num_samples, dist, visualize=False, mode='historgram'):
+def generate_data(num_days, num_samples, dist, visualize=False, mode='histogram'):
     '''
         num_days: number,
         num_sample: number,
@@ -232,7 +232,7 @@ def generate_data(num_days, num_samples, dist, visualize=False, mode='historgram
     if visualize:
         plt.figure()
         for row in data[0:6, :]:
-            if (mode == 'historgram'):
+            if (mode == 'histogram'):
                 y = gaussian_filter1d(row[:-1], sigma=2)
                 sns.lineplot(x=range(300, 851), y=y, color='blue' if row[-1]
                              == 0 else 'red', linewidth=2)

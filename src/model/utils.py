@@ -29,10 +29,10 @@ def kl_div(reference_data, current_data, threshold=0.1, n_bins=20):
     return kl_div_value, kl_div_value >= threshold
 
 
-# def ks(reference_data, current_data, threshold=0.1):
-#     p_value = ks_2samp(reference_data, current_data)[1]
+def ks(reference_data, current_data, threshold=0.1):
+    p_value = ks_2samp(reference_data, current_data)[1]
 
-#     return p_value, p_value <= threshold
+    return p_value, p_value <= threshold
 
 
 def psi(reference_data, current_data, threshold=0.1, n_bins=20):
