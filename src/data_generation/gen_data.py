@@ -105,7 +105,7 @@ def generate(num_days, num_samples, dist, mode):
 
     def hist(arr):
         h, _ = np.histogram(arr, bins=np.arange(
-            value_range[0], value_range[1] + 2, 1))
+            value_range[0], value_range[1] + 1, 1))
         return h.tolist()
 
     print(
@@ -202,7 +202,7 @@ def generate(num_days, num_samples, dist, mode):
                 count += 1
                 if (count > 1000):
                     raise Exception('Cannot generate data')
-        print("Final:", label, scores, np.mean(scores), votes)
+        # print("Final:", label, scores, np.mean(scores), votes)
 
         prev = next
         if (mode == 'histogram'):
