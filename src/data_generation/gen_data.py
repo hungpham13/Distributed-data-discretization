@@ -97,7 +97,7 @@ def add_drift(reference, drift_size: float, drift_ratio: float, drift_mode: str=
     return reference.tolist()
 
 
-def generate(num_days, num_samples, dist, mode):
+def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
     bin_num = 1
     value_range = [300, 850]
     mu_range = [600, 700]
@@ -125,7 +125,7 @@ def generate(num_days, num_samples, dist, mode):
 
     prev = first_day
     for day in tqdm(range(1, num_days)):
-        label = np.random.choice([0, 1], p=[0.7, 0.3])
+        label = np.random.choice([0, 1], p=[normal_ratio, 1 - normal_ratio])
 
         if (label == 0):
             next = gen_nextday(prev, True, dist)
@@ -213,7 +213,7 @@ def generate(num_days, num_samples, dist, mode):
     return data
 
 
-def generate_data(num_days, num_samples, dist, visualize=False, mode='histogram'):
+def generate_data(num_days, num_samples, dist, visualize=False, mode='histogram', normal_ratio=0.9):
     '''
         num_days: number,
         num_sample: number,
@@ -223,7 +223,7 @@ def generate_data(num_days, num_samples, dist, visualize=False, mode='histogram'
     data = np.array([])
     while not done:
         try:
-            data = generate(num_days, num_samples, dist, mode)
+            data = generate(num_days, num_samples, dist, mode, normal_ratio)
             done = True
         except:
             print('Error, retrying...')
