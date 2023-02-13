@@ -213,7 +213,7 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
     return data
 
 
-def generate_data(num_days, num_samples, dist, visualize=False, mode='histogram', normal_ratio=0.9):
+def generate_data(num_days, num_samples, dist, mode='histogram', normal_ratio=0.9, visualize=False):
     '''
         num_days: number,
         num_sample: number,
@@ -233,8 +233,8 @@ def generate_data(num_days, num_samples, dist, visualize=False, mode='histogram'
         plt.figure()
         for row in data[0:6, :]:
             if (mode == 'histogram'):
-                y = gaussian_filter1d(row[:-1], sigma=2)
-                sns.lineplot(x=range(300, 851), y=y, color='blue' if row[-1]
+                y = gaussian_filter1d(row[:-1], sigma=1)
+                sns.lineplot(x=range(300, 850), y=y, color='blue' if row[-1]
                              == 0 else 'red', linewidth=2)
             else:
                 sns.kdeplot(row[:-1], color='blue' if row[-1]
