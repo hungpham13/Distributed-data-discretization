@@ -98,7 +98,7 @@ def add_drift(reference, drift_size: float, drift_ratio: float, drift_mode: str=
     return reference.tolist()
 
 
-def generate(num_days, num_samples, dist, mode):
+def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
     bin_num = 1
     value_range = [300, 850]
     mu_range = [600, 700]
@@ -106,7 +106,7 @@ def generate(num_days, num_samples, dist, mode):
 
     def hist(arr):
         h, _ = np.histogram(arr, bins=np.arange(
-            value_range[0], value_range[1] + 2, 1))
+            value_range[0], value_range[1] + 1, 1))
         return h.tolist()
 
     print(
@@ -126,7 +126,7 @@ def generate(num_days, num_samples, dist, mode):
 
     prev = first_day
     for day in tqdm(range(1, num_days)):
-        label = np.random.choice([0, 1], p=[0.7, 0.3])
+        label = np.random.choice([0, 1], p=[normal_ratio, 1 - normal_ratio])
 
         if (label == 0):
             next = gen_nextday(prev, True, dist)
@@ -203,7 +203,7 @@ def generate(num_days, num_samples, dist, mode):
                 count += 1
                 if (count > 1000):
                     raise Exception('Cannot generate data')
-        print("Final:", label, scores, np.mean(scores), votes)
+        # print("Final:", label, scores, np.mean(scores), votes)
 
         prev = next
         if (mode == 'histogram'):
@@ -214,7 +214,7 @@ def generate(num_days, num_samples, dist, mode):
     return data
 
 
-def generate_data(num_days, num_samples, dist, visualize=False, mode='histogram'):
+def generate_data(num_days, num_samples, dist, mode='histogram', normal_ratio=0.9, visualize=False):
     '''
         num_days: number,
         num_sample: number,
@@ -224,7 +224,7 @@ def generate_data(num_days, num_samples, dist, visualize=False, mode='histogram'
     data = np.array([])
     while not done:
         try:
-            data = generate(num_days, num_samples, dist, mode)
+            data = generate(num_days, num_samples, dist, mode, normal_ratio)
             done = True
         except:
             print('Error, retrying...')
@@ -234,8 +234,8 @@ def generate_data(num_days, num_samples, dist, visualize=False, mode='histogram'
         plt.figure()
         for row in data[0:6, :]:
             if (mode == 'histogram'):
-                y = gaussian_filter1d(row[:-1], sigma=2)
-                sns.lineplot(x=range(300, 851), y=y, color='blue' if row[-1]
+                y = gaussian_filter1d(row[:-1], sigma=1)
+                sns.lineplot(x=range(300, 850), y=y, color='blue' if row[-1]
                              == 0 else 'red', linewidth=2)
             else:
                 sns.kdeplot(row[:-1], color='blue' if row[-1]
