@@ -12,7 +12,8 @@ import gc
 def generate_day(length, dist, mu_range, sigma_range, value_range):
     mu = random.uniform(mu_range[0], mu_range[1])
 
-    max_sigma = min(mu-value_range[0], value_range[1]-mu)/5
+    max_sigma = min(mu-value_range[0], value_range[1]-mu)/3
+    print('max sigma',max_sigma)
     min_sigma = sigma_range[0] if sigma_range[0] < max_sigma else max_sigma
     sigma = random.uniform(min_sigma, max_sigma)
 
@@ -168,7 +169,7 @@ def generate(num_days, num_samples, dist, mode):
             next = gen_nextday(prev, False, dist)
 
             count = 0
-            thresholds = np.random.normal(0.1, 0.001, 4)
+            thresholds = np.random.normal(0.1, 0.01, 4)
             thresholds[thresholds < 0.07] = 0.07
             thresholds[thresholds > 0.3] = 0.3
 
