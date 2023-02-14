@@ -52,3 +52,7 @@ def gen_train():
             with open(f"/work/{dist}/{dist}_{num_days}_days_{num_samples}_samples_{int(r*100)}.npy", "wb") as f:
                 np.save(f, data)
             del data
+
+
+gen_train()
+gen_test()
