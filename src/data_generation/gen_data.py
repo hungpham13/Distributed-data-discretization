@@ -13,9 +13,9 @@ def generate_day(length, dist, mu_range, sigma_range, value_range):
     mu = random.uniform(mu_range[0], mu_range[1])
 
     max_sigma = min(mu-value_range[0], value_range[1]-mu)/3
-    max_sigma = max(max_sigma, sigma_range[0])
-    min_sigma = sigma_range[0]
-    # min_sigma = sigma_range[0] if sigma_range[0] < max_sigma else max_sigma
+    # max_sigma = max(max_sigma, sigma_range[0])
+    # min_sigma = sigma_range[0]
+    min_sigma = sigma_range[0] if sigma_range[0] < max_sigma else max_sigma
     sigma = random.uniform(min_sigma, max_sigma)
 
     if dist == 'mix':
