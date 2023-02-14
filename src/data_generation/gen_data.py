@@ -13,8 +13,9 @@ def generate_day(length, dist, mu_range, sigma_range, value_range):
     mu = random.uniform(mu_range[0], mu_range[1])
 
     max_sigma = min(mu-value_range[0], value_range[1]-mu)/3
-    print('max sigma',max_sigma)
-    min_sigma = sigma_range[0] if sigma_range[0] < max_sigma else max_sigma
+    max_sigma = max(max_sigma, sigma_range[0])
+    min_sigma = sigma_range[0]
+    # min_sigma = sigma_range[0] if sigma_range[0] < max_sigma else max_sigma
     sigma = random.uniform(min_sigma, max_sigma)
 
     if dist == 'mix':
@@ -35,7 +36,7 @@ def generate_day(length, dist, mu_range, sigma_range, value_range):
         s = np.random.gamma((mu/sigma)**2, sigma**2/mu, length).tolist()
     else:
         s = np.random.normal(mu, sigma, length).tolist()
-    
+
     result = np.array([round(i) for i in s])
     result[result > 850] = 850
     result[result < 300] = 300
@@ -66,7 +67,7 @@ def gen_nextday(prev, true, dist):
     return result
 
 
-def add_drift(reference, drift_size: float, drift_ratio: float, drift_mode: str='fixed'):
+def add_drift(reference, drift_size: float, drift_ratio: float, drift_mode: str = 'fixed'):
     """Artificially adds a shift to the data.
     Args:
     curr: initial data
@@ -137,30 +138,30 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
             thresholds[thresholds > 0.3] = 0.3
 
             scores = [js(prev, next, threshold=thresholds[0])[0],
-                    kl_div(prev, next, threshold=thresholds[1])[0],
-                    psi(prev, next, threshold=thresholds[2])[0],
-                    wd(prev, next, threshold=thresholds[3])[0]]
-            
+                      kl_div(prev, next, threshold=thresholds[1])[0],
+                      psi(prev, next, threshold=thresholds[2])[0],
+                      wd(prev, next, threshold=thresholds[3])[0]]
+
             votes = [js(prev, next, threshold=thresholds[0])[1],
-                    kl_div(prev, next, threshold=thresholds[1])[1],
-                    psi(prev, next, threshold=thresholds[2])[1],
-                    wd(prev, next, threshold=thresholds[3])[1]]
+                     kl_div(prev, next, threshold=thresholds[1])[1],
+                     psi(prev, next, threshold=thresholds[2])[1],
+                     wd(prev, next, threshold=thresholds[3])[1]]
 
             stop = np.mean(scores) < 0.1 and sum(votes) <= 1
             while not stop:
                 next = gen_nextday(prev, False, dist)
 
                 scores = [js(prev, next, threshold=thresholds[0])[0],
-                        kl_div(prev, next, threshold=thresholds[1])[0],
-                        psi(prev, next, threshold=thresholds[2])[0],
-                        wd(prev, next, threshold=thresholds[3])[0]]
+                          kl_div(prev, next, threshold=thresholds[1])[0],
+                          psi(prev, next, threshold=thresholds[2])[0],
+                          wd(prev, next, threshold=thresholds[3])[0]]
 
                 votes = [js(prev, next, threshold=thresholds[0])[1],
-                        kl_div(prev, next, threshold=thresholds[1])[1],
-                        psi(prev, next, threshold=thresholds[2])[1],
-                        wd(prev, next, threshold=thresholds[3])[1]]
-                stop = np.mean(scores) <= 0.15 and sum(votes) < 2   
-                
+                         kl_div(prev, next, threshold=thresholds[1])[1],
+                         psi(prev, next, threshold=thresholds[2])[1],
+                         wd(prev, next, threshold=thresholds[3])[1]]
+                stop = np.mean(scores) <= 0.15 and sum(votes) < 2
+
                 gc.collect()
                 count += 1
                 if (count > 1000):
@@ -174,31 +175,31 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
             thresholds[thresholds > 0.3] = 0.3
 
             scores = [js(prev, next, threshold=thresholds[0])[0],
-                    kl_div(prev, next, threshold=thresholds[1])[0],
-                    psi(prev, next, threshold=thresholds[2])[0],
-                    wd(prev, next, threshold=thresholds[3])[0]]
+                      kl_div(prev, next, threshold=thresholds[1])[0],
+                      psi(prev, next, threshold=thresholds[2])[0],
+                      wd(prev, next, threshold=thresholds[3])[0]]
 
             votes = [js(prev, next, threshold=thresholds[0])[1],
-                    kl_div(prev, next, threshold=thresholds[1])[1],
-                    psi(prev, next, threshold=thresholds[2])[1],
-                    wd(prev, next, threshold=thresholds[3])[1]]
+                     kl_div(prev, next, threshold=thresholds[1])[1],
+                     psi(prev, next, threshold=thresholds[2])[1],
+                     wd(prev, next, threshold=thresholds[3])[1]]
 
             stop = 0.1 <= np.mean(scores) <= 0.3 and sum(votes) >= 2
             while not stop:
                 next = gen_nextday(prev, False, dist)
 
                 scores = [js(prev, next, threshold=thresholds[0])[0],
-                        kl_div(prev, next, threshold=thresholds[1])[0],
-                        psi(prev, next, threshold=thresholds[2])[0],
-                        wd(prev, next, threshold=thresholds[3])[0]]
+                          kl_div(prev, next, threshold=thresholds[1])[0],
+                          psi(prev, next, threshold=thresholds[2])[0],
+                          wd(prev, next, threshold=thresholds[3])[0]]
 
                 votes = [js(prev, next, threshold=thresholds[0])[1],
-                        kl_div(prev, next, threshold=thresholds[1])[1],
-                        psi(prev, next, threshold=thresholds[2])[1],
-                        wd(prev, next, threshold=thresholds[3])[1]]
-                
+                         kl_div(prev, next, threshold=thresholds[1])[1],
+                         psi(prev, next, threshold=thresholds[2])[1],
+                         wd(prev, next, threshold=thresholds[3])[1]]
+
                 stop = 0.1 <= np.mean(scores) <= 0.3 and sum(votes) >= 2
-                
+
                 gc.collect()
                 count += 1
                 if (count > 1000):
