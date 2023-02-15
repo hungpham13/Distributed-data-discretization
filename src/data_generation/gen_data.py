@@ -111,7 +111,7 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
         return h.tolist()
 
     print(
-        f'Generating {dist} distribution, {num_days} days, {num_samples} samples...')
+        f'Generating {dist} distribution, {num_days} days, {num_samples} samples, {normal_ratio} ratio [{mode}]...')
     # generate first day
     first_day = []
     for _ in range(bin_num):

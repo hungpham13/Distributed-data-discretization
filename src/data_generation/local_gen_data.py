@@ -4,6 +4,8 @@ import numpy as np
 
 ratios = [0.7, 0.8, 0.9]
 
+parent_folder = '/work'
+
 
 def gen_test():
     dists = ['normal', 'logistic', 'uniform', 'exponential', 'gamma']
@@ -20,10 +22,10 @@ def gen_test():
                    ]
 
     for dist in dists:
-        os.makedirs(f"../../test-{dist}", exist_ok=True)
+        os.makedirs(f"{parent_folder}/test-{dist}", exist_ok=True)
         for num_samples, num_days, i, r in iter_bundle:
-            data = generate_data(num_days, num_samples, dist, visualize=False)
-            with open(f"../../test-{dist}/test_{i}_{dist}_{num_days}_days_{num_samples}_samples_{int(r*100)}.npy", "wb") as f:
+            data = generate_data(num_days, num_samples, dist, normal_ratio=r)
+            with open(f"{parent_folder}/test-{dist}/test_{i}_{dist}_{num_days}_days_{num_samples}_samples_{int(r*100)}.npy", "wb") as f:
                 np.save(f, data)
             del data
 
@@ -46,10 +48,10 @@ def gen_train():
     print("Going to generate", len(iter_bundle), "distributions")
 
     for dist in dists:
-        os.makedirs(f"/work/{dist}", exist_ok=True)
+        os.makedirs(f"{parent_folder}/{dist}", exist_ok=True)
         for num_samples, num_days, r in iter_bundle:
-            data = generate_data(num_days, num_samples, dist, visualize=False)
-            with open(f"/work/{dist}/{dist}_{num_days}_days_{num_samples}_samples_{int(r*100)}.npy", "wb") as f:
+            data = generate_data(num_days, num_samples, dist, normal_ratio=r)
+            with open(f"{parent_folder}/{dist}/{dist}_{num_days}_days_{num_samples}_samples_{int(r*100)}.npy", "wb") as f:
                 np.save(f, data)
             del data
 
