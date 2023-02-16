@@ -52,9 +52,9 @@ def gen_nextday(prev, true, dist):
     mu_range = [600, 700]
     sigma_range = [100,]
     if true:
-        r = 0.1
+        r = 0.05
     else:
-        r = 0.6
+        r = 0.3
     # remove random r% of element in prev
     result = random.sample(prev, round(len(prev) * (1 - r)))
     # add r% of a new random normal distribution to result
@@ -76,7 +76,7 @@ def add_drift(reference, drift_size: float, drift_ratio: float, drift_mode: str=
         # here we should use mean(reference), but in out experiment mean(reference) = mean(current) at this stage
         all values moved by fixed delta = (alpha + mean(feature)) * drift_size
         elif: 
-        drift_mode == 'relative': vlues moved by delta(value) = value * drift_size
+        drift_mode == 'relative': values moved by delta(value) = value * drift_size
     Returns:
     curr: drifted data
     """
