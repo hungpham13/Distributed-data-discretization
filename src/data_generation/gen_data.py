@@ -52,9 +52,9 @@ def gen_nextday(prev, true, dist):
     mu_range = [600, 700]
     sigma_range = [100,]
     if true:
-        r = 0.05
+        r = 0.1
     else:
-        r = 0.3
+        r = 0.65
     # remove random r% of element in prev
     result = random.sample(prev, round(len(prev) * (1 - r)))
     # add r% of a new random normal distribution to result
@@ -131,8 +131,8 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
             next = gen_nextday(prev, True, dist)
 
             count = 0
-            thresholds = np.random.normal(0.1, 0.001, 4)
-            thresholds[thresholds < 0.05] = 0.05
+            thresholds = np.random.normal(0.1, 0.01, 4)
+            thresholds[thresholds < 0.08] = 0.08
             thresholds[thresholds > 0.3] = 0.3
 
             scores = [js(prev, next, threshold=thresholds[0])[0],
@@ -158,7 +158,7 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
                         kl_div(prev, next, threshold=thresholds[1])[1],
                         psi(prev, next, threshold=thresholds[2])[1],
                         wd(prev, next, threshold=thresholds[3])[1]]
-                stop = np.mean(scores) <= 0.15 and sum(votes) < 2   
+                stop = np.mean(scores) < 0.1 and sum(votes) <= 1  
                 
                 gc.collect()
                 count += 1
@@ -168,8 +168,8 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
             next = gen_nextday(prev, False, dist)
 
             count = 0
-            thresholds = np.random.normal(0.1, 0.001, 4)
-            thresholds[thresholds < 0.07] = 0.07
+            thresholds = np.random.normal(0.1, 0.01, 4)
+            thresholds[thresholds < 0.08] = 0.08
             thresholds[thresholds > 0.3] = 0.3
 
             scores = [js(prev, next, threshold=thresholds[0])[0],
@@ -182,7 +182,8 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
                     psi(prev, next, threshold=thresholds[2])[1],
                     wd(prev, next, threshold=thresholds[3])[1]]
 
-            stop = 0.1 <= np.mean(scores) <= 0.3 and sum(votes) >= 2
+            stop = 0.1 <= np.mean(scores) < 0.3 and sum(votes) >= 2
+            # stop = 0.2 <= np.mean(scores) and sum(votes) >= 2
             while not stop:
                 next = gen_nextday(prev, False, dist)
 
@@ -196,7 +197,8 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
                         psi(prev, next, threshold=thresholds[2])[1],
                         wd(prev, next, threshold=thresholds[3])[1]]
                 
-                stop = 0.1 <= np.mean(scores) <= 0.3 and sum(votes) >= 2
+                stop = 0.1 <= np.mean(scores) < 0.3 and sum(votes) >= 2
+                # stop = 0.2 <= np.mean(scores) and sum(votes) >= 2
                 
                 gc.collect()
                 count += 1
