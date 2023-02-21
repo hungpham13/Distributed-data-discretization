@@ -1,12 +1,12 @@
 import random
-
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from tqdm import tqdm
-from model.utils import js, kl_div, psi, wd
+from utils import js, kl_div, psi, wd
 from scipy.ndimage.filters import gaussian_filter1d
 import gc
+import argparse
 
 
 def generate_day(length, dist, mu_range, sigma_range, value_range):
@@ -215,7 +215,7 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
     return data
 
 
-def generate_data(num_days, num_samples, dist, mode='histogram', normal_ratio=0.9, visualize=False):
+def generate_data(num_days, num_samples, dist, mode='histogram', normal_ratio=0.9, visualize=False, save_path=None):
     '''
         num_days: number,
         num_sample: number,
@@ -244,4 +244,31 @@ def generate_data(num_days, num_samples, dist, mode='histogram', normal_ratio=0.
         plt.show()
         print(data[:5, :])
 
+    if save_path:
+        with open(save_path, "wb") as f:
+            np.save(f, data)
+
     return data
+
+
+def parse_opt():
+
+    ap = argparse.ArgumentParser()
+
+    ap.add_argument('--days', type=int)
+    ap.add_argument('--samples', type=int)
+    ap.add_argument('--dist', type=str)
+    ap.add_argument('--mode', type=str, default='histogram')
+    ap.add_argument('--ratio', type=float, default=0.9)
+    ap.add_argument('--vis', type=bool, default=False)
+    ap.add_argument('--output', type=str, default=None)
+
+    opt = vars(ap.parse_args())
+
+    return opt
+
+
+if __name__ == '__main__':
+    opt = parse_opt()
+    data = generate_data(opt['days'], opt['samples'], opt['dist'], mode=opt['mode'],
+                         normal_ratio=opt['ratio'], visualize=opt['vis'], save_path=opt['output'])
