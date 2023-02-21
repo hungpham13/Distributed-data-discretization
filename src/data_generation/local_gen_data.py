@@ -1,9 +1,9 @@
 import os
-from threading import Thread
+from multiprocessing import Pool
 
 ratios = [0.7, 0.8, 0.9]
 
-output_folder = '/home/hung/PythonProject/Distributed-data-discretization'
+output_folder = '/work'
 
 
 def gen_test():
@@ -21,31 +21,15 @@ def gen_test():
                    for i in range(1, 4)
                    ]
 
-    # for dist in dists:
-    #     os.makedirs(f"{parent_folder}/test-{dist}", exist_ok=True)
-    #     for num_samples, num_days, i, r in iter_bundle:
-    #         # data = generate_data(num_days, num_samples, dist, normal_ratio=r)
-    #         with open(f"{parent_folder}/test-{dist}/test_{i}_{dist}_{num_days}_days_{num_samples}_samples_{int(r*100)}.npy", "wb") as f:
-    #             np.save(f, data)
-    #         del data
     slice_iter_bundle = iter_bundle[:]
     print("Going to generate", len(slice_iter_bundle), "distributions")
+    commands = []
+    for dist, num_samples, num_days, index, r in slice_iter_bundle:
+        commands.append(
+            f"python3 data_generation/gen_data.py --days {num_days} --samples {num_samples} --dist {dist} --ratio {r} --output {output_folder}/test-{dist}/test_{index}_{dist}_{num_days}_days_{num_samples}_samples_{int(r*100)}.npy")
 
-    threads = [None] * 4
-
-    for i in range(0, len(slice_iter_bundle), 4):
-        for j in range(4):
-            if i+j < len(slice_iter_bundle):
-                dist, num_samples, num_days, index, r = slice_iter_bundle[i+j]
-                os.makedirs(f"{output_folder}/test-{dist}", exist_ok=True)
-
-                threads[j] = Thread(target=os.system,
-                                    args=(f"python3 data_generation/gen_data.py --days {num_days} --samples {num_samples} --dist {dist} --ratio {r} --output {output_folder}/test-{dist}/test_{index}_{dist}_{num_days}_days_{num_samples}_samples_{int(r*100)}.npy",))
-                threads[j].start()
-
-        for j in range(4):
-            if i+j < len(slice_iter_bundle):
-                threads[j].join()
+    with Pool(4) as pool:
+        pool.map(os.system, commands)
 
 
 def gen_train():
@@ -66,21 +50,13 @@ def gen_train():
     slice_iter_bundle = iter_bundle[:]
     print("Going to generate", len(slice_iter_bundle), "distributions")
 
-    threads = [None] * 4
+    commands = []
+    for dist, num_samples, num_days, r in slice_iter_bundle:
+        commands.append(
+            f"python3 data_generation/gen_data.py --days {num_days} --samples {num_samples} --dist {dist} --ratio {r} --output {output_folder}/{dist}/{dist}_{num_days}_days_{num_samples}_samples_{int(r*100)}.npy")
 
-    for i in range(0, len(slice_iter_bundle), 4):
-        for j in range(4):
-            if i+j < len(slice_iter_bundle):
-                dist, num_samples, num_days, r = slice_iter_bundle[i+j]
-                os.makedirs(f"{output_folder}/{dist}", exist_ok=True)
-
-                threads[j] = Thread(target=os.system,
-                                    args=(f"python3 data_generation/gen_data.py --days {num_days} --samples {num_samples} --dist {dist} --ratio {r} --output {output_folder}/{dist}/{dist}_{num_days}_days_{num_samples}_samples_{int(r*100)}.npy",))
-                threads[j].start()
-
-        for j in range(4):
-            if i+j < len(slice_iter_bundle):
-                threads[j].join()
+    with Pool(4) as pool:
+        pool.map(os.system, commands)
 
 
 gen_train()
