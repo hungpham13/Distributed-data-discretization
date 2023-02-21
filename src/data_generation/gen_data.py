@@ -7,6 +7,7 @@ from utils import js, kl_div, psi, wd
 from scipy.ndimage.filters import gaussian_filter1d
 import gc
 import argparse
+from pathlib import Path
 
 
 def generate_day(length, dist, mu_range, sigma_range, value_range):
@@ -74,10 +75,10 @@ def add_drift(reference, drift_size: float, drift_ratio: float, drift_mode: str 
     drift_size: percents initial values would be increased by
     drift_ratio: defines what percent of data would be drifted
     drift_mode:
-        if drift_mode == 'fixed': 
+        if drift_mode == 'fixed':
         # here we should use mean(reference), but in out experiment mean(reference) = mean(current) at this stage
         all values moved by fixed delta = (alpha + mean(feature)) * drift_size
-        elif: 
+        elif:
         drift_mode == 'relative': vlues moved by delta(value) = value * drift_size
     Returns:
     curr: drifted data
@@ -221,6 +222,10 @@ def generate_data(num_days, num_samples, dist, mode='histogram', normal_ratio=0.
         num_sample: number,
         dist: 'normal' or 'logistic' or 'uniform' or 'mix',
     '''
+    if save_path and Path(save_path).is_file():
+        print("File exists, loading...", save_path)
+        return np.load(save_path)
+
     done = False
     data = np.array([])
     while not done:
