@@ -112,7 +112,7 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
         return h.tolist()
 
     print(
-        f'Generating {dist} distribution, {num_days} days, {num_samples} samples, {normal_ratio} ratio [{mode}]...')
+        f'Generating {dist} distribution, {num_days} days, {num_samples} samples, {normal_ratio} ratio [{mode}]...\n')
     # generate first day
     first_day = []
     for _ in range(bin_num):
@@ -224,7 +224,7 @@ def generate_data(num_days, num_samples, dist, mode='histogram', normal_ratio=0.
         dist: 'normal' or 'logistic' or 'uniform' or 'mix',
     '''
     if save_path and Path(save_path).is_file():
-        print("File exists, loading...", save_path)
+        print("File exists, loading...\n", save_path)
         return np.load(save_path)
 
     done = False
@@ -234,7 +234,7 @@ def generate_data(num_days, num_samples, dist, mode='histogram', normal_ratio=0.
             data = generate(num_days, num_samples, dist, mode, normal_ratio)
             done = True
         except:
-            print('Error, retrying...')
+            print('Error, retrying...\n')
             pass
 
     if visualize:
