@@ -1,1 +1,11 @@
-data/*.csv filter=lfs diff=lfs merge=lfs -text
+output/ewb_gamma_results.csv filter=lfs diff=lfs merge=lfs -text
+output/ewb_logistic_results.csv filter=lfs diff=lfs merge=lfs -text
+output/logistic_results.csv filter=lfs diff=lfs merge=lfs -text
+output/uniform_results.csv filter=lfs diff=lfs merge=lfs -text
+output/efb_logistic_results.csv filter=lfs diff=lfs merge=lfs -text
+output/efb_normal_results.csv filter=lfs diff=lfs merge=lfs -text
+output/exponential_results.csv filter=lfs diff=lfs merge=lfs -text
+output/gamma_results.csv filter=lfs diff=lfs merge=lfs -text
+output/normal_results.csv filter=lfs diff=lfs merge=lfs -text
+output/efb_gamma_results.csv filter=lfs diff=lfs merge=lfs -text
+output/ewb_normal_results.csv filter=lfs diff=lfs merge=lfs -text
