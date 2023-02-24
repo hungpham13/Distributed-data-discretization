@@ -1,18 +1,21 @@
 import random
-
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from tqdm import tqdm
-from model.utils import js, kl_div, psi, wd
+from utils import js, kl_div, psi, wd
 from scipy.ndimage.filters import gaussian_filter1d
 import gc
+import argparse
+from pathlib import Path
 
 
 def generate_day(length, dist, mu_range, sigma_range, value_range):
     mu = random.uniform(mu_range[0], mu_range[1])
 
-    max_sigma = min(mu-value_range[0], value_range[1]-mu)/5
+    max_sigma = min(mu-value_range[0], value_range[1]-mu)/3
+    # max_sigma = max(max_sigma, sigma_range[0])
+    # min_sigma = sigma_range[0]
     min_sigma = sigma_range[0] if sigma_range[0] < max_sigma else max_sigma
     sigma = random.uniform(min_sigma, max_sigma)
 
@@ -34,7 +37,7 @@ def generate_day(length, dist, mu_range, sigma_range, value_range):
         s = np.random.gamma((mu/sigma)**2, sigma**2/mu, length).tolist()
     else:
         s = np.random.normal(mu, sigma, length).tolist()
-    
+
     result = np.array([round(i) for i in s])
     result[result > 850] = 850
     result[result < 300] = 300
@@ -65,18 +68,18 @@ def gen_nextday(prev, true, dist):
     return result
 
 
-def add_drift(reference, drift_size: float, drift_ratio: float, drift_mode: str='fixed'):
+def add_drift(reference, drift_size: float, drift_ratio: float, drift_mode: str = 'fixed'):
     """Artificially adds a shift to the data.
     Args:
     curr: initial data
     drift_size: percents initial values would be increased by
     drift_ratio: defines what percent of data would be drifted
     drift_mode:
-        if drift_mode == 'fixed': 
+        if drift_mode == 'fixed':
         # here we should use mean(reference), but in out experiment mean(reference) = mean(current) at this stage
         all values moved by fixed delta = (alpha + mean(feature)) * drift_size
         elif: 
-        drift_mode == 'relative': values moved by delta(value) = value * drift_size
+        drift_mode == 'relative': vlues moved by delta(value) = value * drift_size
     Returns:
     curr: drifted data
     """
@@ -109,7 +112,7 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
         return h.tolist()
 
     print(
-        f'Generating {dist} distribution, {num_days} days, {num_samples} samples...')
+        f'Generating {dist} distribution, {num_days} days, {num_samples} samples, {normal_ratio} ratio [{mode}]...')
     # generate first day
     first_day = []
     for _ in range(bin_num):
@@ -136,29 +139,29 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
             thresholds[thresholds > 0.3] = 0.3
 
             scores = [js(prev, next, threshold=thresholds[0])[0],
-                    kl_div(prev, next, threshold=thresholds[1])[0],
-                    psi(prev, next, threshold=thresholds[2])[0],
-                    wd(prev, next, threshold=thresholds[3])[0]]
-            
+                      kl_div(prev, next, threshold=thresholds[1])[0],
+                      psi(prev, next, threshold=thresholds[2])[0],
+                      wd(prev, next, threshold=thresholds[3])[0]]
+
             votes = [js(prev, next, threshold=thresholds[0])[1],
-                    kl_div(prev, next, threshold=thresholds[1])[1],
-                    psi(prev, next, threshold=thresholds[2])[1],
-                    wd(prev, next, threshold=thresholds[3])[1]]
+                     kl_div(prev, next, threshold=thresholds[1])[1],
+                     psi(prev, next, threshold=thresholds[2])[1],
+                     wd(prev, next, threshold=thresholds[3])[1]]
 
             stop = np.mean(scores) < 0.1 and sum(votes) <= 1
             while not stop:
                 next = gen_nextday(prev, False, dist)
 
                 scores = [js(prev, next, threshold=thresholds[0])[0],
-                        kl_div(prev, next, threshold=thresholds[1])[0],
-                        psi(prev, next, threshold=thresholds[2])[0],
-                        wd(prev, next, threshold=thresholds[3])[0]]
+                          kl_div(prev, next, threshold=thresholds[1])[0],
+                          psi(prev, next, threshold=thresholds[2])[0],
+                          wd(prev, next, threshold=thresholds[3])[0]]
 
                 votes = [js(prev, next, threshold=thresholds[0])[1],
                         kl_div(prev, next, threshold=thresholds[1])[1],
                         psi(prev, next, threshold=thresholds[2])[1],
                         wd(prev, next, threshold=thresholds[3])[1]]
-                stop = np.mean(scores) < 0.1 and sum(votes) <= 1  
+                stop = np.mean(scores) < 0.1 and sum(votes) <= 1   
                 
                 gc.collect()
                 count += 1
@@ -173,14 +176,14 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
             thresholds[thresholds > 0.3] = 0.3
 
             scores = [js(prev, next, threshold=thresholds[0])[0],
-                    kl_div(prev, next, threshold=thresholds[1])[0],
-                    psi(prev, next, threshold=thresholds[2])[0],
-                    wd(prev, next, threshold=thresholds[3])[0]]
+                      kl_div(prev, next, threshold=thresholds[1])[0],
+                      psi(prev, next, threshold=thresholds[2])[0],
+                      wd(prev, next, threshold=thresholds[3])[0]]
 
             votes = [js(prev, next, threshold=thresholds[0])[1],
-                    kl_div(prev, next, threshold=thresholds[1])[1],
-                    psi(prev, next, threshold=thresholds[2])[1],
-                    wd(prev, next, threshold=thresholds[3])[1]]
+                     kl_div(prev, next, threshold=thresholds[1])[1],
+                     psi(prev, next, threshold=thresholds[2])[1],
+                     wd(prev, next, threshold=thresholds[3])[1]]
 
             stop = 0.1 <= np.mean(scores) < 0.3 and sum(votes) >= 2
             # stop = 0.2 <= np.mean(scores) and sum(votes) >= 2
@@ -188,9 +191,9 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
                 next = gen_nextday(prev, False, dist)
 
                 scores = [js(prev, next, threshold=thresholds[0])[0],
-                        kl_div(prev, next, threshold=thresholds[1])[0],
-                        psi(prev, next, threshold=thresholds[2])[0],
-                        wd(prev, next, threshold=thresholds[3])[0]]
+                          kl_div(prev, next, threshold=thresholds[1])[0],
+                          psi(prev, next, threshold=thresholds[2])[0],
+                          wd(prev, next, threshold=thresholds[3])[0]]
 
                 votes = [js(prev, next, threshold=thresholds[0])[1],
                         kl_div(prev, next, threshold=thresholds[1])[1],
@@ -198,7 +201,6 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
                         wd(prev, next, threshold=thresholds[3])[1]]
                 
                 stop = 0.1 <= np.mean(scores) < 0.3 and sum(votes) >= 2
-                # stop = 0.2 <= np.mean(scores) and sum(votes) >= 2
                 
                 gc.collect()
                 count += 1
@@ -215,12 +217,16 @@ def generate(num_days, num_samples, dist, mode, normal_ratio=0.9):
     return data
 
 
-def generate_data(num_days, num_samples, dist, mode='histogram', normal_ratio=0.9, visualize=False):
+def generate_data(num_days, num_samples, dist, mode='histogram', normal_ratio=0.9, visualize=False, save_path=None):
     '''
         num_days: number,
         num_sample: number,
         dist: 'normal' or 'logistic' or 'uniform' or 'mix',
     '''
+    if save_path and Path(save_path).is_file():
+        print("File exists, loading...", save_path)
+        return np.load(save_path)
+
     done = False
     data = np.array([])
     while not done:
@@ -244,4 +250,31 @@ def generate_data(num_days, num_samples, dist, mode='histogram', normal_ratio=0.
         plt.show()
         print(data[:5, :])
 
+    if save_path:
+        with open(save_path, "wb") as f:
+            np.save(f, data)
+
     return data
+
+
+def parse_opt():
+
+    ap = argparse.ArgumentParser()
+
+    ap.add_argument('--days', type=int)
+    ap.add_argument('--samples', type=int)
+    ap.add_argument('--dist', type=str)
+    ap.add_argument('--mode', type=str, default='histogram')
+    ap.add_argument('--ratio', type=float, default=0.9)
+    ap.add_argument('--vis', type=bool, default=False)
+    ap.add_argument('--output', type=str, default=None)
+
+    opt = vars(ap.parse_args())
+
+    return opt
+
+
+if __name__ == '__main__':
+    opt = parse_opt()
+    data = generate_data(opt['days'], opt['samples'], opt['dist'], mode=opt['mode'],
+                         normal_ratio=opt['ratio'], visualize=opt['vis'], save_path=opt['output'])
